@@ -1,34 +1,18 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# To Do
+_This is a demonstration of NextJS, Typescript, Socket.io_
+Right now I only have an input box that changes on every connected client when any client types into it.
 
-## Getting Started
+I want to change this into a comment system... I can just drag and drop some text from previous examples, but I think I want to do this for myself from here.
 
-First, run the development server:
+I eventually want to get Jest into the mix here, but I will leave it out until I start working on the connect four game.
+I will work on the game after I get this Chat app working.
 
-```bash
-npm run dev
-# or
-yarn dev
-```
+I will have to work out how matchmaking and rooms work... but we'll deal with that when we get there.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
-
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
-
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+From here, this is what needs to happen:
+1. I should read the 'http' and 'net' docs.
+2. I should modify client.tsx to get the chat app working.
+3. I should work out how the rooms work, and get the chat app working with it.
+4. I should then transition to building the connect four game.
+5. I should be writing tests for as much as I can in this process.
+6. Might be cool to keep the chat room function in there too.
