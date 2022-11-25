@@ -1,0 +1,35 @@
+.board {
+    width: 700px;
+    height:600px;
+    background:black;
+    
+}
+.hole {
+    border-radius: 50%;
+    width:80px;
+    height: 80px;
+    background:black;
+}
+
+.board{
+    position:relative;
+    width:700px; height:600px;
+    margin:0 auto;
+    overflow:hidden;
+}
+.board::after{
+    content:'';
+    position:absolute;
+    left:175px; top:25px;
+    border-radius:100%;
+    width:150px; height:150px;
+    box-shadow: 0px 0px 0px 2000px #E3DFD2;
+    cursor:pointer;
+}
+
+.board:hover {
+    background-color:pink;
+}
+.board:hover::after {
+    box-shadow:0px 0px 0px 2000px yellow;
+}
