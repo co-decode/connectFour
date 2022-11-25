@@ -1,35 +1,42 @@
 .board {
-    width: 700px;
-    height:600px;
-    background:black;
-    
+    position:absolute;
+    bottom:0;
+    left:50%;
+    display:flex;
+    width:700px;
+    flex-wrap:wrap;
+    transform:translateX(-50%) scale(1);
 }
-.hole {
-    border-radius: 50%;
-    width:80px;
-    height: 80px;
-    background:black;
-}
-
-.board{
+.hole{
     position:relative;
-    width:700px; height:600px;
+    width:100px; height:100px;
     margin:0 auto;
     overflow:hidden;
 }
-.board::after{
+.hole::after{
     content:'';
     position:absolute;
-    left:175px; top:25px;
+    left:10px; top:10px;
     border-radius:100%;
-    width:150px; height:150px;
+    width:80px; height:80px;
     box-shadow: 0px 0px 0px 2000px #E3DFD2;
     cursor:pointer;
 }
 
-.board:hover {
-    background-color:pink;
+.hole:hover {
+    background-color:yellow;
 }
-.board:hover::after {
+/* .hole:hover::after {
     box-shadow:0px 0px 0px 2000px yellow;
+} */
+
+.piece {
+    position:absolute;
+    left:50%;
+    width: 80px;
+    height:80px;
+    border-radius:50%;
+    background:red;
+    box-shadow: 0 0 0 1px black, 0 0 0 4px red;
+    transform: translateX(-50%) scale(1);
 }
