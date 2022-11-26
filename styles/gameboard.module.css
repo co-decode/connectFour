@@ -32,11 +32,25 @@
 
 .piece {
     position:absolute;
+    transition: transform 0.3s;
     left:50%;
+    bottom: 610px;
     width: 80px;
     height:80px;
     border-radius:50%;
     background:red;
     box-shadow: 0 0 0 1px black, 0 0 0 4px red;
+    transform: translateX(-50%) scale(1);
+}
+.bluePiece {
+    position:absolute;
+    transition: transform 0.3s; 
+    left:50%;
+    bottom: 610px;
+    width: 80px;
+    height:80px;
+    border-radius:50%;
+    background:blue;
+    box-shadow: 0 0 0 1px black, 0 0 0 4px blue;
     transform: translateX(-50%) scale(1);
 }
