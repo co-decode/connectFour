@@ -1,17 +1,18 @@
-import { MouseEvent, useEffect, useRef, useState } from 'react'
+import { MouseEvent, useEffect, useMemo, useRef, useState } from 'react'
 import styles from '../styles/gameboard.module.css'
 interface Position {
     row: number,
     col: number
 }
 
+
 const board =  Array.from({length: 42}, _ => 0)
 
 /* What needs to happen next? */
 /* 
- - Fix piece spawn in bug
- - Determine when the game is won.
- - Then work on socket integration.
+- DONE Fix piece spawn in bug
+- NEXT ->> Determine when the game is won.
+- Then work on socket integration.
 */
 export default function GameBoard() {
     const [pieces, setPieces] = useState<number[]>([0])
@@ -19,21 +20,20 @@ export default function GameBoard() {
     const [moves, setMoves] = useState<number[]>([])
     const pieceRef = useRef<null | HTMLDivElement>(null)
     const holeRef = useRef<HTMLDivElement[]>([])
-    
-    
+    // const prevPieces = useMemo(() => pieces.length - 1, [pieces]) 
+
     useEffect(() => {
         // New pieces are spawned in the center of the board. 
-        // FIX THIS: It should spawn over the player's mouse hover, and if not hovering the board , then spawn central.
-        // The piece is central because of its css
         if (pieceRef.current == null ) return
         // As hover events set piecePos, the piece's offset moves it to the column over which the mouse hovers.
         // If the mouse exits the board, the piece stays at where the mouse last hovers.
         let offset = piecePos - 3
+        if (pieceRef.current.style.display !== "block") pieceRef.current.style.display = "block"
         pieceRef.current.style.left = `calc(50% + ${offset * 100}px)`
-    },[piecePos])
 
-    const handleHover = (col: number) => {
-        setPiecePos(col)
+    },[piecePos,pieces])
+
+    function paintLowest(col:number) {
         let lowestOfCol: number | null = null;
         // No hole should be yellow if no space if available
         for (let i = 0; i < 42; i++) {
@@ -44,6 +44,17 @@ export default function GameBoard() {
         if (lowestOfCol == null) return
         // Turn hole yellow
         holeRef.current[lowestOfCol].style.backgroundColor = "yellow"
+    }
+
+    useEffect(() => {
+        // Only when a piece is added does a new paint occur, such that even without a mouseevent causing a repaint, a yellow circle will appear in the column where the cursor is hovering.
+        let col = piecePos
+        paintLowest(col)
+    },[pieces])
+
+    const handleHover = (col: number) => {
+        setPiecePos(col)
+        paintLowest(col)
     }
     const handleOut = () => {
         for (let i = 0; i < 42; i++) {
@@ -66,8 +77,16 @@ export default function GameBoard() {
         let row = Math.floor(lowestOfCol / 7)
         // Piece translates, there should be a transition property set for this.
         pieceRef.current.style.transform = `translate(-50%, ${600 - (5 - row) * 100}px)`
-        // Generate a new piece.
-        pieces.push(0)
+        // Release highlighting
+        handleOut()
+        // Remove the ref to the piece so that new mouseEvents do not disrupt placement
+        pieceRef.current = null
+        // Generate a new piece after a delay
+        function afterDelay() {
+            setPieces([...pieces, 0])
+        }
+        setTimeout(afterDelay, 300)
+        
     }
     return (
         <div style={{width:'100%', height:'100vh', position:'relative'}}>
@@ -123,6 +142,10 @@ export default function GameBoard() {
  Transition property for dropping the pieces is a flat 0.3s
  It's not too important, but it would be nice to scale their fall times based on how far they are falling...
 */
+
+
+
+// FIXED
 /* BUG:
     I'm having issues with the game pieces not resetting fast enough.
     When the new piece appears it appears mid, but right now I need a mouse out and mouse over event to trigger repositioning

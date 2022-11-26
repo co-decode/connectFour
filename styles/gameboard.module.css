@@ -31,6 +31,7 @@
 } */
 
 .piece {
+    display:none;
     position:absolute;
     transition: transform 0.3s;
     left:50%;
@@ -43,6 +44,7 @@
     transform: translateX(-50%) scale(1);
 }
 .bluePiece {
+    display:none;
     position:absolute;
     transition: transform 0.3s; 
     left:50%;
