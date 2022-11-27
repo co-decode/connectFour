@@ -8,7 +8,7 @@ export default function Home() {
   return (
     <div className={styles.container}>
       <Client />
-      <GameBoard />
+      {/* <GameBoard /> */}
     </div>
   )
 }

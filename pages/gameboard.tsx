@@ -163,7 +163,7 @@ export default function GameBoard() {
     }
     return (
         <div style={{width:'100%', height:'100vh', position:'relative'}}>
-            {gameOver ? <h1>THE GAME IS WON! A WINNER IS {turn}!</h1> : null}
+            {gameOver ? <h1>THE GAME IS WON! {turn} WINS!</h1> : null}
         {pieces.map((v,i) =>
             <div 
                 key={i}

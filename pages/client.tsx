@@ -1,8 +1,9 @@
-import { ChangeEventHandler, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import io from 'socket.io-client'
 
 import type { ChangeEvent } from 'react'
 import type { Socket } from 'socket.io-client'
+import GameBoard from './gameboard'
 
 let socket: undefined | Socket
 let key = 0;
@@ -11,6 +12,7 @@ export default function Client() {
   const [alias, setAlias] = useState('')
   const [input, setInput] = useState('')
   const [messageObject, setMessageObject] = useState<string[]>([])
+
   useEffect(() => {
     socketInitializer()
   }, [])
@@ -57,6 +59,7 @@ export default function Client() {
       placeholder="Your name"
       onChange={aliasChange}
     />
+    <GameBoard />
     </>
   )
 }
