@@ -5,6 +5,7 @@ interface Position {
     col: number
 }
 
+const [RED, BLUE] = ['RED', 'BLUE']
 
 const board =  Array.from({length: 42}, _ => 0)
 
@@ -17,10 +18,10 @@ const board =  Array.from({length: 42}, _ => 0)
 export default function GameBoard() {
     const [pieces, setPieces] = useState<number[]>([0])
     const [piecePos, setPiecePos] = useState<number>(3)
-    const [moves, setMoves] = useState<number[]>([])
+    const [moves, setMoves] = useState<number[]>([...board])
+    const [turn, setTurn] = useState<string>(RED)
     const pieceRef = useRef<null | HTMLDivElement>(null)
     const holeRef = useRef<HTMLDivElement[]>([])
-    // const prevPieces = useMemo(() => pieces.length - 1, [pieces]) 
 
     useEffect(() => {
         // New pieces are spawned in the center of the board. 
@@ -38,7 +39,7 @@ export default function GameBoard() {
         // No hole should be yellow if no space if available
         for (let i = 0; i < 42; i++) {
             // Ensure that the lowest unoccupied space in column is selected
-            if (i % 7 === col && !moves.includes(i)) lowestOfCol = i 
+            if (i % 7 === col && moves[i] === 0) lowestOfCol = i 
         }
         // Guard against null case
         if (lowestOfCol == null) return
@@ -53,6 +54,7 @@ export default function GameBoard() {
     },[pieces])
 
     const handleHover = (col: number) => {
+        // Change piecePos and paint lowest on mouseOver event
         setPiecePos(col)
         paintLowest(col)
     }
@@ -67,12 +69,12 @@ export default function GameBoard() {
         let lowestOfCol:number | null = null;
         // Loop through the game board and discover the lowest of Col
         for (let i = 0; i < 42; i++) {
-            if (i % 7 === col && !moves.includes(i)) lowestOfCol = i
+            if (i % 7 === col && moves[i] === 0) lowestOfCol = i
         }
         // Guard against placing on a column that has no space
         if (lowestOfCol == null) return
         // Add the move to the list of occupied circles
-        setMoves([...moves, lowestOfCol])
+        setMoves(moves.map((v,i) => i === lowestOfCol ? (turn === RED ? 1 : 2) : v))
         // Check which row the move will occupy 
         let row = Math.floor(lowestOfCol / 7)
         // Piece translates, there should be a transition property set for this.
@@ -81,12 +83,12 @@ export default function GameBoard() {
         handleOut()
         // Remove the ref to the piece so that new mouseEvents do not disrupt placement
         pieceRef.current = null
-        // Generate a new piece after a delay
+        // Generate a new piece after a delay, and switch turns
         function afterDelay() {
             setPieces([...pieces, 0])
+            setTurn(turn === RED ? BLUE : RED)
         }
         setTimeout(afterDelay, 300)
-        
     }
     return (
         <div style={{width:'100%', height:'100vh', position:'relative'}}>
