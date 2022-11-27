@@ -45,6 +45,9 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
       socket.on('input-change', (msg) => {
         socket.broadcast.emit('update-input', msg)
       })
+      socket.on('piecePosChange', (col) => {
+        socket.broadcast.emit('piecePosUpdate', col)
+      })
     })
   }
 

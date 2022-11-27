@@ -12,6 +12,14 @@ export default function Client() {
   const [alias, setAlias] = useState('')
   const [input, setInput] = useState('')
   const [messageObject, setMessageObject] = useState<string[]>([])
+  const [pieces, setPieces] = useState<number[]>([0])
+    const [piecePos, setPiecePos] = useState<number>(3)
+    const [moves, setMoves] = useState<number[][]>(
+        Array.from({length:6}, (_,i) => 
+            Array.from({length: 7}, () => 0))
+        )
+    const [turn, setTurn] = useState<string>("RED")
+    const [gameOver, setGameOver] = useState<boolean>(false)
 
   useEffect(() => {
     socketInitializer()
@@ -28,6 +36,10 @@ export default function Client() {
     socket.on('update-input', (msg) => { 
       // NOTE: setState here needs its function form to facilitate rerendering within an async function.
       setMessageObject((prev) => [...prev, `${msg.name}: ${msg.text}`])
+    })
+
+    socket.on('piecePosUpdate', (col) => {
+      setPiecePos((prev) => col)
     })
   }
 
@@ -59,7 +71,19 @@ export default function Client() {
       placeholder="Your name"
       onChange={aliasChange}
     />
-    <GameBoard />
+    <GameBoard 
+      pieces={pieces}
+      setPieces={setPieces}  
+      piecePos={piecePos} 
+      setPiecePos={setPiecePos} 
+      moves={moves}
+      setMoves={setMoves} 
+      turn={turn} 
+      setTurn={setTurn} 
+      gameOver={gameOver} 
+      setGameOver={setGameOver}
+      socket={socket}
+    />
     </>
   )
 }

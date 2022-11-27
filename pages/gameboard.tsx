@@ -1,24 +1,21 @@
-import { MouseEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { Dispatch, MouseEvent, SetStateAction, useEffect, useMemo, useRef, useState } from 'react'
+import { Socket } from 'socket.io-client'
 import styles from '../styles/gameboard.module.css'
-interface Position {
-    row: number,
-    col: number
-}
-/* 
-interface Helper {
-    horizontal: number[][],
-    vertical: number[][],
-    inclineDiag: number[][],
-    declineDiag: number[][]
+
+interface Props {
+    pieces: number[], 
+    setPieces: Dispatch<SetStateAction<number[]>>,
+    piecePos:number,
+    setPiecePos: Dispatch<SetStateAction<number>>,
+    moves:number[][],
+    setMoves: Dispatch<SetStateAction<number[][]>>,
+    turn: string,
+    setTurn: Dispatch<SetStateAction<string>>,
+    gameOver: boolean,
+    setGameOver:Dispatch<SetStateAction<boolean>>,
+    socket: Socket | undefined
 }
 
-const helper: Helper = {
-    horizontal: [[0,1],[0,-1]],
-    vertical: [[1,0],[-1,0]],
-    inclineDiag: [[1,1],[-1,-1]],
-    declineDiag: [[1,-1],[-1,1]]
-}
- */
 const [RED, BLUE] = ['RED', 'BLUE']
 
 const board =  Array.from({length: 42}, _ => 0)
@@ -30,15 +27,27 @@ const board =  Array.from({length: 42}, _ => 0)
 - Next ->> Fix Spawn in issues with multiple bad highlights
 - Then work on socket integration.
 */
-export default function GameBoard() {
-    const [pieces, setPieces] = useState<number[]>([0])
+export default function GameBoard({
+    pieces, 
+    setPieces, 
+    piecePos, 
+    setPiecePos, 
+    moves, 
+    setMoves, 
+    turn, 
+    setTurn, 
+    gameOver,
+    setGameOver,
+    socket
+}: Props) {
+    /* const [pieces, setPieces] = useState<number[]>([0])
     const [piecePos, setPiecePos] = useState<number>(3)
     const [moves, setMoves] = useState<number[][]>(
         Array.from({length:6}, (_,i) => 
             Array.from({length: 7}, () => 0))
         )
     const [turn, setTurn] = useState<string>(RED)
-    const [gameOver, setGameOver] = useState<boolean>(false)
+    const [gameOver, setGameOver] = useState<boolean>(false) */
     const pieceRef = useRef<null | HTMLDivElement>(null)
     const holeRef = useRef<HTMLDivElement[]>([])
 
@@ -54,9 +63,9 @@ export default function GameBoard() {
     },[piecePos,pieces])
 
     useEffect(() => {
+        // Disable pointer on game board when the game is over
         if (gameOver) {
             holeRef.current.forEach(hole => hole.style.cursor = "default")
-        
         }
     }, [gameOver])
 
@@ -86,6 +95,7 @@ export default function GameBoard() {
         if (gameOver) return
         // Change piecePos and paint lowest on mouseOver event
         setPiecePos(col)
+        if (socket != undefined) socket.emit('piecePosChange', col)
         paintLowest(col)
     }
     const handleOut = () => {
@@ -104,20 +114,17 @@ export default function GameBoard() {
         i = 1
         while (moves[r][c - i++] === t) count++
         if (count >= 4) return true
-        console.log(count)
         i = 1
         count = 1
         // VERTICAL:
         while (r + i < 6 && moves[r + i++][c] === t) count++
         if (count === 4) return true
-        console.log(count)
         i = 1
         count = 1
         // INCLINE DIAG:
         while (r + i < 6 && moves[r + i][c + i++] === t) count++
         i = 1
         while (r - i >= 0 && moves[r - i][c - i++] === t) count++
-        console.log(count)
         if (count >= 4) return true
         i = 1
         count = 1
@@ -125,7 +132,6 @@ export default function GameBoard() {
         while (r - i >= 0 && moves[r - i][c + i++] === t) count++
         i = 1
         while (r + i < 6 && moves[r + i][c - i++] === t) count++
-        console.log(count)
         if (count >= 4) return true
         i = 1
         count = 1
