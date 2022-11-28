@@ -1,4 +1,4 @@
-import { Dispatch, MouseEvent, SetStateAction, useEffect, useMemo, useRef, useState } from 'react'
+import { Dispatch, MouseEvent, MutableRefObject, SetStateAction, useEffect, useMemo, useRef, useState } from 'react'
 import { Socket } from 'socket.io-client'
 import styles from '../styles/gameboard.module.css'
 
@@ -13,19 +13,25 @@ interface Props {
     setTurn: Dispatch<SetStateAction<string>>,
     gameOver: boolean,
     setGameOver:Dispatch<SetStateAction<boolean>>,
+    pieceRef: MutableRefObject<HTMLDivElement | null>,
     socket: Socket | undefined
 }
 
 const [RED, BLUE] = ['RED', 'BLUE']
-
 const board =  Array.from({length: 42}, _ => 0)
+
 
 /* What needs to happen next? */
 /* 
 - DONE Fix piece spawn in bug
 - DONE Determine when the game is won.
 - Next ->> Fix Spawn in issues with multiple bad highlights
+- BUG : Painting is still occuring immediately on other players screen, it also obscures the winning players screen... maybe share guard state?
 - Then work on socket integration.
+    - DONE Game moves are shared
+    - There should be a local game mode and a remote game mode, remote only permits the player to move on the assigned turn
+    - I need to share the gameover message.
+    - I need to build a lobby which pairs only two players together. Perhaps I can admit spectators. Look up socket rooms.
 */
 export default function GameBoard({
     pieces, 
@@ -38,6 +44,7 @@ export default function GameBoard({
     setTurn, 
     gameOver,
     setGameOver,
+    pieceRef,
     socket
 }: Props) {
     /* const [pieces, setPieces] = useState<number[]>([0])
@@ -48,7 +55,8 @@ export default function GameBoard({
         )
     const [turn, setTurn] = useState<string>(RED)
     const [gameOver, setGameOver] = useState<boolean>(false) */
-    const pieceRef = useRef<null | HTMLDivElement>(null)
+    // const pieceRef = useRef<null | HTMLDivElement>(null)
+    const [guard, setGuard] = useState<boolean>(false)
     const holeRef = useRef<HTMLDivElement[]>([])
 
     useEffect(() => {
@@ -60,7 +68,7 @@ export default function GameBoard({
         if (pieceRef.current.style.display !== "block") pieceRef.current.style.display = "block"
         pieceRef.current.style.left = `calc(50% + ${offset * 100}px)`
 
-    },[piecePos,pieces])
+    },[piecePos,pieces,pieceRef])
 
     useEffect(() => {
         // Disable pointer on game board when the game is over
@@ -69,44 +77,41 @@ export default function GameBoard({
         }
     }, [gameOver])
 
-    function paintLowest(col:number) {
-        let lowestOfCol: number | null = null;
-        // No hole should be yellow if no space if available
-        for (let i = 0; i < 42; i++) {
-            // Ensure that the lowest unoccupied space in column is selected
-            
-            if (i % 7 === col && moves[Math.floor(i / 7)][col] === 0) lowestOfCol = i 
-        }
-        // Guard against null case
-        if (lowestOfCol == null) return
-        // Turn hole yellow
-        holeRef.current[lowestOfCol].style.backgroundColor = "yellow"
-    }
-
     useEffect(() => {
         // Only when a piece is added does a new paint occur, such that even without a mouseevent causing a repaint, a yellow circle will appear in the column where the cursor is hovering.
         // Ensure paint does not occur after the winning move.
-        let col = piecePos
-        if (!gameOver) paintLowest(col)
-    },[pieces])
+        
+        if (!gameOver && !guard) {
+            let lowestOfCol: number | null = null;
+            // No hole should be yellow if no space if available
+            for (let i = 0; i < 42; i++) {
+                // Ensure that the lowest unoccupied space in column is selected
+                if (i % 7 === piecePos && moves[Math.floor(i / 7)][piecePos] === 0) lowestOfCol = i
+                // Clear all previous highlights 
+                holeRef.current[i].style.backgroundColor = "transparent"
+            }
+            // Guard against null case
+            if (lowestOfCol == null) return
+            // Paint hole yellow
+            holeRef.current[lowestOfCol].style.backgroundColor = "yellow"
+        }
+    },[pieces, gameOver, piecePos, moves, guard])
 
     const handleHover = (col: number) => {
         // Do not highlight if the game has been won:
         if (gameOver) return
         // Change piecePos and paint lowest on mouseOver event
         setPiecePos(col)
-        if (socket != undefined) socket.emit('piecePosChange', col)
-        paintLowest(col)
+        socket?.emit('piecePosChange', col)
     }
     const handleOut = () => {
         for (let i = 0; i < 42; i++) {
             holeRef.current[i].style.backgroundColor = "transparent"
         }
-        // All backgroundColors are cleared, but the hover event fire AFTER this event, ensuring there should always be an open space in yellow so long as the board is being hovered.
+        // All backgroundColors are cleared, but the hover event fires AFTER this event, ensuring there should always be an open space in yellow so long as the board is being hovered.
     }
     function checkMove(r:number, c:number, t:number): boolean {
         // Check count for vertical, horizontal, incline diagonal and decline diagonal
-        // let center = moves[r][c]
         let count = 1
         let i = 1
         // HORIZONTAL:
@@ -147,25 +152,30 @@ export default function GameBoard({
         }
         // Guard against placing on a column that has no space
         if (lowestOfCol == null) return
-        // Add the move to the list of occupied circles
-        // setMoves(moves.map((v,i) => i === lowestOfCol ? (turn === RED ? 1 : 2) : v))
-        let row = Math.floor(lowestOfCol / 7)
-        setMoves(moves.map((v,r) => r === row ? v.map((prev,c) => c === col ? (turn === RED ? 1 : 2) : prev) : v))
         // Check which row the move will occupy 
+        let row = Math.floor(lowestOfCol / 7)
+        socket?.emit('placeMove', row)
         // Piece translates, there should be a transition property set for this.
         pieceRef.current.style.transform = `translate(-50%, ${600 - (5 - row) * 100}px)`
         // Release highlighting
         handleOut()
         // Remove the ref to the piece so that new mouseEvents do not disrupt placement
         pieceRef.current = null
-        // Generate a new piece after a delay, and switch turns
+        setGuard(true)
         function afterDelay() {
+            // Add the move to the list of occupied circles
+            socket?.emit('changeMovesTurnAndPieces', row, col, turn)
+            setMoves(moves.map((v,r) => r === row ? v.map((prev,c) => c === col ? (turn === RED ? 1 : 2) : prev) : v))
+            // Generate a new piece after a delay, and switch turns
             setPieces([...pieces, 0])
             setTurn(turn === RED ? BLUE : RED)
+            setGuard(false)
         }
         // Check if the game has been won
         if (!checkMove(row, col, turn === RED ? 1 : 2)) setTimeout(afterDelay, 300)
-        else setGameOver(true)
+        else {
+            socket?.emit('gameOver')
+            setGameOver(true)}
     }
     return (
         <div style={{width:'100%', height:'100vh', position:'relative'}}>
@@ -185,7 +195,6 @@ export default function GameBoard({
                 key={`r${Math.floor(i / 7)}c${i % 7}}`} 
                 className={styles.hole} 
                 onMouseOver={(e: MouseEvent)=>handleHover(i%7)}
-                onMouseOut={handleOut}
                 onClick={(e: MouseEvent) => handlePlacement(i%7)}/>
                 )
         }

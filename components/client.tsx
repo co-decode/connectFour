@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import io from 'socket.io-client'
 
 import type { ChangeEvent } from 'react'
@@ -20,6 +20,7 @@ export default function Client() {
         )
     const [turn, setTurn] = useState<string>("RED")
     const [gameOver, setGameOver] = useState<boolean>(false)
+    const pieceRef = useRef<null | HTMLDivElement>(null)
 
   useEffect(() => {
     socketInitializer()
@@ -40,6 +41,21 @@ export default function Client() {
 
     socket.on('piecePosUpdate', (col) => {
       setPiecePos((prev) => col)
+    })
+
+    socket.on('placeMove', (row) => {
+      if (pieceRef == null || pieceRef.current == null) return
+      pieceRef.current.style.transform = `translate(-50%, ${600 - (5 - row) * 100}px)`
+      pieceRef.current = null
+    })
+    
+    socket.on('updateMovesTurnAndPieces', (row, col, t) => {
+      setMoves((moves) => moves.map((v,r) => r === row ? v.map((prev,c) => c === col ? (t === "RED" ? 1 : 2) : prev) : v))
+      setPieces((prev) => [...prev, 0])
+      setTurn(t === "RED" ? "BLUE" : "RED")
+    })
+    socket.on('gameOver', () => {
+      setGameOver(true)
     })
   }
 
@@ -82,6 +98,7 @@ export default function Client() {
       setTurn={setTurn} 
       gameOver={gameOver} 
       setGameOver={setGameOver}
+      pieceRef={pieceRef}
       socket={socket}
     />
     </>

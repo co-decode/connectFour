@@ -48,6 +48,15 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
       socket.on('piecePosChange', (col) => {
         socket.broadcast.emit('piecePosUpdate', col)
       })
+      socket.on('placeMove', (row) => {
+        socket.broadcast.emit('placeMove', row)
+      })
+      socket.on('changeMovesTurnAndPieces', (row, col, turn) => {
+        socket.broadcast.emit('updateMovesTurnAndPieces', row, col, turn)
+      })
+      socket.on('gameOver', () => {
+        socket.broadcast.emit('gameOver')
+      })
     })
   }
 
