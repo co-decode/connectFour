@@ -13,6 +13,8 @@ interface Props {
     setTurn: Dispatch<SetStateAction<string>>,
     gameOver: boolean,
     setGameOver:Dispatch<SetStateAction<boolean>>,
+    guard:boolean,
+    setGuard:Dispatch<SetStateAction<boolean>>,
     pieceRef: MutableRefObject<HTMLDivElement | null>,
     socket: Socket | undefined
 }
@@ -26,7 +28,7 @@ const board =  Array.from({length: 42}, _ => 0)
 - DONE Fix piece spawn in bug
 - DONE Determine when the game is won.
 - Next ->> Fix Spawn in issues with multiple bad highlights
-- BUG : Painting is still occuring immediately on other players screen, it also obscures the winning players screen... maybe share guard state?
+- BUG : Painting is still occuring immediately on other player's screen, it also obscures the winning players screen... maybe share guard state?
 - Then work on socket integration.
     - DONE Game moves are shared
     - There should be a local game mode and a remote game mode, remote only permits the player to move on the assigned turn
@@ -44,19 +46,11 @@ export default function GameBoard({
     setTurn, 
     gameOver,
     setGameOver,
+    guard,
+    setGuard,
     pieceRef,
     socket
 }: Props) {
-    /* const [pieces, setPieces] = useState<number[]>([0])
-    const [piecePos, setPiecePos] = useState<number>(3)
-    const [moves, setMoves] = useState<number[][]>(
-        Array.from({length:6}, (_,i) => 
-            Array.from({length: 7}, () => 0))
-        )
-    const [turn, setTurn] = useState<string>(RED)
-    const [gameOver, setGameOver] = useState<boolean>(false) */
-    // const pieceRef = useRef<null | HTMLDivElement>(null)
-    const [guard, setGuard] = useState<boolean>(false)
     const holeRef = useRef<HTMLDivElement[]>([])
 
     useEffect(() => {
@@ -94,6 +88,8 @@ export default function GameBoard({
             if (lowestOfCol == null) return
             // Paint hole yellow
             holeRef.current[lowestOfCol].style.backgroundColor = "yellow"
+        } else if (guard) {
+            handleOut()
         }
     },[pieces, gameOver, piecePos, moves, guard])
 
