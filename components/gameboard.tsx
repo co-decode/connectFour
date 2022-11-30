@@ -15,6 +15,8 @@ interface Props {
     setGameOver:Dispatch<SetStateAction<boolean>>,
     guard:boolean,
     setGuard:Dispatch<SetStateAction<boolean>>,
+    side:string,
+    room:string | null,
     pieceRef: MutableRefObject<HTMLDivElement | null>,
     socket: Socket | undefined
 }
@@ -27,13 +29,19 @@ const board =  Array.from({length: 42}, _ => 0)
 /* 
 - DONE Fix piece spawn in bug
 - DONE Determine when the game is won.
-- Next ->> Fix Spawn in issues with multiple bad highlights
-- BUG : Painting is still occuring immediately on other player's screen, it also obscures the winning players screen... maybe share guard state?
+- ? ->> Fix Spawn in issues with multiple bad highlights
+- DONE : Painting is still occuring immediately on other player's screen, it also obscures the winning players screen... maybe share guard state?
 - Then work on socket integration.
     - DONE Game moves are shared
+    - DONE I need to share the gameover message.
+    - DONE I need to build a lobby which pairs only two players together. Perhaps I can admit spectators. Look up socket rooms.
+    - I must stop RED from moving when no BLUE player has joined, else game states become unsynced.
+    - Clean up chat position
     - There should be a local game mode and a remote game mode, remote only permits the player to move on the assigned turn
-    - I need to share the gameover message.
-    - I need to build a lobby which pairs only two players together. Perhaps I can admit spectators. Look up socket rooms.
+    - Local: No chat for local.
+    - Game size... change for screen size?
+    - Online: Make players commit to alias before joining game
+
 */
 export default function GameBoard({
     pieces, 
@@ -48,6 +56,8 @@ export default function GameBoard({
     setGameOver,
     guard,
     setGuard,
+    side,
+    room,
     pieceRef,
     socket
 }: Props) {
@@ -94,11 +104,12 @@ export default function GameBoard({
     },[pieces, gameOver, piecePos, moves, guard])
 
     const handleHover = (col: number) => {
-        // Do not highlight if the game has been won:
-        if (gameOver) return
+        // Do not highlight if the game has been won
+        // Block interaction from other players
+        if (gameOver || side !== turn) return
         // Change piecePos and paint lowest on mouseOver event
         setPiecePos(col)
-        socket?.emit('piecePosChange', col)
+        socket?.emit('piecePosChange', col, room)
     }
     const handleOut = () => {
         for (let i = 0; i < 42; i++) {
@@ -140,7 +151,7 @@ export default function GameBoard({
         return false
     }
     const handlePlacement = (col:number) => {
-        if (pieceRef.current === null) return
+        if (pieceRef.current === null || side !== turn) return
         let lowestOfCol:number | null = null;
         // Loop through the game board and discover the lowest of Col
         for (let i = 0; i < 42; i++) {
@@ -150,7 +161,7 @@ export default function GameBoard({
         if (lowestOfCol == null) return
         // Check which row the move will occupy 
         let row = Math.floor(lowestOfCol / 7)
-        socket?.emit('placeMove', row)
+        socket?.emit('placeMove', row, room)
         // Piece translates, there should be a transition property set for this.
         pieceRef.current.style.transform = `translate(-50%, ${600 - (5 - row) * 100}px)`
         // Release highlighting
@@ -160,7 +171,7 @@ export default function GameBoard({
         setGuard(true)
         function afterDelay() {
             // Add the move to the list of occupied circles
-            socket?.emit('changeMovesTurnAndPieces', row, col, turn)
+            socket?.emit('changeMovesTurnAndPieces', row, col, turn, room)
             setMoves(moves.map((v,r) => r === row ? v.map((prev,c) => c === col ? (turn === RED ? 1 : 2) : prev) : v))
             // Generate a new piece after a delay, and switch turns
             setPieces([...pieces, 0])
@@ -170,7 +181,7 @@ export default function GameBoard({
         // Check if the game has been won
         if (!checkMove(row, col, turn === RED ? 1 : 2)) setTimeout(afterDelay, 300)
         else {
-            socket?.emit('gameOver')
+            socket?.emit('gameOver', room)
             setGameOver(true)}
     }
     return (

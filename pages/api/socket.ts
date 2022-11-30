@@ -32,6 +32,9 @@ interface NextApiResponseWithSocket extends NextApiResponse {
   socket: SocketWithIO
 }
 
+let side = "RED"
+const roomList: string[] = []
+
 const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
   if (res.socket.server.io) {
     console.log('Socket is already running.')
@@ -42,20 +45,26 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
     res.socket.server.io = io
 
     io.on('connection', (socket) => {
-      socket.on('input-change', (msg) => {
-        socket.broadcast.emit('update-input', msg)
+      socket.on('requestSide', () => {
+        if (side === "RED") roomList.push(`room${roomList.length}`)
+        socket.join(roomList[roomList.length - 1])
+        socket.emit('receiveSide', side, roomList[roomList.length - 1])
+        side = side === "RED" ? "BLUE" : "RED"
       })
-      socket.on('piecePosChange', (col) => {
-        socket.broadcast.emit('piecePosUpdate', col)
+      socket.on('input-change', (msg, roomID) => {
+        socket.to(roomID).emit('update-input', msg)
       })
-      socket.on('placeMove', (row) => {
-        socket.broadcast.emit('placeMove', row)
+      socket.on('piecePosChange', (col, roomID) => {
+        socket.to(roomID).emit('piecePosUpdate', col)
       })
-      socket.on('changeMovesTurnAndPieces', (row, col, turn) => {
-        socket.broadcast.emit('updateMovesTurnAndPieces', row, col, turn)
+      socket.on('placeMove', (row, roomID) => {
+        socket.to(roomID).emit('placeMove', row)
       })
-      socket.on('gameOver', () => {
-        socket.broadcast.emit('gameOver')
+      socket.on('changeMovesTurnAndPieces', (row, col, turn, roomID) => {
+        socket.to(roomID).emit('updateMovesTurnAndPieces', row, col, turn)
+      })
+      socket.on('gameOver', (roomID) => {
+        socket.to(roomID).emit('gameOver')
       })
     })
   }

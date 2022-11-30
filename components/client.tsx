@@ -23,6 +23,9 @@ export default function Client() {
   const [guard, setGuard] = useState<boolean>(false)
   const pieceRef = useRef<null | HTMLDivElement>(null)
 
+  const [side, setSide] = useState<string>("SPECTATOR")
+  const [room, setRoom] = useState<string | null>(null)
+
   useEffect(() => {
     socketInitializer()
   }, [])
@@ -33,8 +36,13 @@ export default function Client() {
 
     socket.on('connect', () => {
       console.log('connected')
+      socket?.emit('requestSide')
     })
-
+    socket.on('receiveSide', (side, roomID) => {
+      console.log('welcome',side,roomID)
+      setSide(side)
+      setRoom(roomID)
+    })
     socket.on('update-input', (msg:{name:string, text:string}) => { 
       // NOTE: setState here needs its function form to facilitate rerendering within an async function.
       setMessageObject((prev) => [...prev, `${msg.name}: ${msg.text}`])
@@ -68,7 +76,7 @@ export default function Client() {
 
   const handleClick = () => {
     if (socket !== undefined) {
-      socket.emit('input-change', {name: alias, text: input})
+      socket.emit('input-change', {name: alias, text: input}, room)
     }
     setMessageObject([...messageObject, `Me: ${input}`])
     setInput("")
@@ -104,6 +112,8 @@ export default function Client() {
       setGameOver={setGameOver}
       guard={guard}
       setGuard={setGuard}
+      side={side}
+      room={room}
       pieceRef={pieceRef}
       socket={socket}
     />
