@@ -32,8 +32,12 @@ interface NextApiResponseWithSocket extends NextApiResponse {
   socket: SocketWithIO
 }
 
-let side = "RED"
-const roomList: string[] = []
+interface roomObject {
+  [roomName:string]: number;
+}
+
+let roomCounter = 0
+let roomList: roomObject = {} 
 
 const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
   if (res.socket.server.io) {
@@ -46,11 +50,24 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
 
     io.on('connection', (socket) => {
       socket.on('requestSide', () => {
-        if (side === "RED") roomList.push(`room${roomList.length}`)
-        socket.join(roomList[roomList.length - 1])
-        socket.emit('receiveSide', side, roomList[roomList.length - 1])
-        side = side === "RED" ? "BLUE" : "RED"
+        if (roomList[`room${roomCounter}`] == undefined) {
+          roomList[`room${roomCounter}`] = 1
+          socket.join(`room${roomCounter}`)
+          socket.emit('receiveSide', "RED", `room${roomCounter}`)
+        } else {
+          socket.join(`room${roomCounter}`)
+          socket.emit('receiveSide', "BLUE", `room${roomCounter++}`)
+        }
       })
+      socket.on('startGame', (roomID) => {
+        socket.to(roomID).emit('startGame')
+      })
+      socket.on('leaveGame', (roomID) => {
+        socket.to(roomID).emit('endGame')
+        socket.leave(roomID)
+        if (roomList[roomID] != undefined) delete roomList[roomID]
+      })
+
       socket.on('input-change', (msg, roomID) => {
         socket.to(roomID).emit('update-input', msg)
       })

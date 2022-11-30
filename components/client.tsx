@@ -9,21 +9,24 @@ let socket: undefined | Socket
 let key = 0;
 
 export default function Client() {
-  const [alias, setAlias] = useState('')
+  const [alias, setAlias] = useState<string>("")
+  const aliasRef = useRef<HTMLInputElement | null>(null)
   const [input, setInput] = useState('')
   const [messageObject, setMessageObject] = useState<string[]>([])
+
   const [pieces, setPieces] = useState<number[]>([0])
   const [piecePos, setPiecePos] = useState<number>(3)
   const [moves, setMoves] = useState<number[][]>(
-      Array.from({length:6}, (_,i) => 
-          Array.from({length: 7}, () => 0))
-      )
-  const [turn, setTurn] = useState<string>("RED")
+    Array.from({length:6}, (_,i) => 
+        Array.from({length: 7}, () => 0))
+    )
   const [gameOver, setGameOver] = useState<boolean>(false)
   const [guard, setGuard] = useState<boolean>(false)
   const pieceRef = useRef<null | HTMLDivElement>(null)
-
-  const [side, setSide] = useState<string>("SPECTATOR")
+      
+  const [turn, setTurn] = useState<string>("WAITING")
+  const [side, setSide] = useState<string>("UNSET")
+  const [locale, setLocale] = useState<string | null>(null)
   const [room, setRoom] = useState<string | null>(null)
 
   useEffect(() => {
@@ -36,13 +39,22 @@ export default function Client() {
 
     socket.on('connect', () => {
       console.log('connected')
-      socket?.emit('requestSide')
     })
     socket.on('receiveSide', (side, roomID) => {
       console.log('welcome',side,roomID)
+      if (side === "BLUE") socket?.emit('startGame', roomID)
       setSide(side)
       setRoom(roomID)
     })
+    socket.on('startGame', () => {
+      setTurn("RED")
+    })
+    socket.on('endGame', () => {
+      socket?.emit('leaveGame')
+      setRoom(null)
+      setGameOver(true)
+    })
+
     socket.on('update-input', (msg:{name:string, text:string}) => { 
       // NOTE: setState here needs its function form to facilitate rerendering within an async function.
       setMessageObject((prev) => [...prev, `${msg.name}: ${msg.text}`])
@@ -75,6 +87,11 @@ export default function Client() {
   }
 
   const handleClick = () => {
+    if (alias.length == 0  && aliasRef.current?.value) {
+      setAlias(aliasRef.current.value)
+      aliasRef.current.style.display = "none"
+      return
+    }
     if (socket !== undefined) {
       socket.emit('input-change', {name: alias, text: input}, room)
     }
@@ -82,24 +99,22 @@ export default function Client() {
     setInput("")
   }
 
-  const aliasChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setAlias(e.target.value)
+  const chooseLocal = () => {
+    setLocale("LOCAL")
   }
-
+  const chooseOnline = () => {
+    setLocale("ONLINE")
+    socket?.emit('requestSide')
+  }
+  const leaveGame = () => {
+    socket?.emit('leaveGame', room)
+    setGameOver(true)
+  }
   return (
     <>
-    {messageObject.map(v => <div key={key++}>{v}</div>)}
-    <button onClick={handleClick}>submit</button>
-    <input
-      placeholder="Type something"
-      value={input}
-      onChange={onChangeHandler}
-    />
-    <input
-      placeholder="Your name"
-      onChange={aliasChange}
-    />
-    <GameBoard 
+    {locale ?
+    <>
+      <GameBoard 
       pieces={pieces}
       setPieces={setPieces}  
       piecePos={piecePos} 
@@ -114,9 +129,33 @@ export default function Client() {
       setGuard={setGuard}
       side={side}
       room={room}
+      locale={locale}
       pieceRef={pieceRef}
       socket={socket}
-    />
+    /> 
+    {/* Components specific to ONLINE play */}
+    {locale === "ONLINE" ?
+    <>
+    <button onClick={leaveGame}>Leave Game</button>
+    <button onClick={handleClick}>Submit</button>
+    {alias ? <input
+      placeholder="Type something"
+      value={input}
+      onChange={onChangeHandler}
+      />
+      : null }
+    <input
+      placeholder="Your name"
+      ref={aliasRef}
+      />
+    {messageObject.map(v => <div key={key++}>{v}</div>)}
+    </>
+    : null}
+    </>: 
+    <>
+    <button onClick={chooseLocal}>Local</button>
+    <button onClick={chooseOnline}>Online</button>
+    </>}
     </>
   )
 }

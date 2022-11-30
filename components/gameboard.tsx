@@ -17,6 +17,7 @@ interface Props {
     setGuard:Dispatch<SetStateAction<boolean>>,
     side:string,
     room:string | null,
+    locale:string,
     pieceRef: MutableRefObject<HTMLDivElement | null>,
     socket: Socket | undefined
 }
@@ -35,12 +36,16 @@ const board =  Array.from({length: 42}, _ => 0)
     - DONE Game moves are shared
     - DONE I need to share the gameover message.
     - DONE I need to build a lobby which pairs only two players together. Perhaps I can admit spectators. Look up socket rooms.
-    - I must stop RED from moving when no BLUE player has joined, else game states become unsynced.
-    - Clean up chat position
-    - There should be a local game mode and a remote game mode, remote only permits the player to move on the assigned turn
-    - Local: No chat for local.
-    - Game size... change for screen size?
-    - Online: Make players commit to alias before joining game
+    - DONE I must stop RED from moving when no BLUE player has joined, else game states become unsynced.
+    - DONE Clean up chat position
+    - DONE There should be a local game mode and a remote game mode, remote only permits the player to move on the assigned turn
+    - DONE Local: No chat for local.
+    - DONE Online: Make players commit to alias before joining game chat
+    - DONE Release room when a game is over and players have left
+    - DONE Allow players to leave before game is over??? ie to surrender.
+    - DONE Ensure that a room is dropped if a player joins and leaves before another player enters.
+    - Players need to be able to go back to the locale choice when a game ends
+    - Game size... change for screen size? And other basic formatting.
 
 */
 export default function GameBoard({
@@ -58,6 +63,7 @@ export default function GameBoard({
     setGuard,
     side,
     room,
+    locale,
     pieceRef,
     socket
 }: Props) {
@@ -106,7 +112,7 @@ export default function GameBoard({
     const handleHover = (col: number) => {
         // Do not highlight if the game has been won
         // Block interaction from other players
-        if (gameOver || side !== turn) return
+        if (gameOver || (side !== turn && locale === "ONLINE")) return
         // Change piecePos and paint lowest on mouseOver event
         setPiecePos(col)
         socket?.emit('piecePosChange', col, room)
@@ -151,7 +157,7 @@ export default function GameBoard({
         return false
     }
     const handlePlacement = (col:number) => {
-        if (pieceRef.current === null || side !== turn) return
+        if (pieceRef.current === null || (side !== turn && locale === "ONLINE")) return
         let lowestOfCol:number | null = null;
         // Loop through the game board and discover the lowest of Col
         for (let i = 0; i < 42; i++) {
