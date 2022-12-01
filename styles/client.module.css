@@ -1,0 +1,65 @@
+.titleContainer {
+    display: flex;
+    flex-direction: column;    
+    align-items: center;
+}
+
+.localeButtons {
+    display:flex;
+    gap:1em;
+}
+
+.chatContainer {
+    position:absolute;
+    right:8px;
+    top: 50px;
+    display:flex;
+    flex-direction: column  ;
+    width: calc(60% - 366px );
+    /* overflow-y: auto; */
+    height:calc(100% - 58px);
+    transition:left 0.3s;
+}
+
+.msgContainer {
+    flex-grow: 1;
+    overflow-y: auto;
+
+}
+
+.leaveButton {
+    position:absolute;
+    bottom: 8px;
+    left: 8px;
+}
+@media (width < 1160px) {
+    .leaveButton {
+        opacity:0.3;
+    }
+    .leaveButton:hover {
+        opacity:1;
+    }
+
+}
+
+.chatToggle {
+    display:none;
+    position:absolute;
+    width: 25px;
+    height:25px;
+    right: 12px;
+    top:12px;
+    background-image:url("../public/chat.svg");
+    cursor:pointer;
+}
+
+
+@media (width < 950px) {
+    .chatContainer {
+        left:100%;
+        width:25%;
+    }
+    .chatToggle {
+        display:block
+    }
+}

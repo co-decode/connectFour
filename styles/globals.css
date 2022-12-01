@@ -1,5 +1,8 @@
 html,
 body {
+  overflow:hidden;
+  width:100%;
+  height:100%;
   padding: 0;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
@@ -14,13 +17,32 @@ a {
 * {
   box-sizing: border-box;
 }
+input {
+  font-size: 18px;
+}
 
-@media (prefers-color-scheme: dark) {
+button {
+  border: none;
+  background-color:gray;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+@media (prefers-color-scheme: light) {
   html {
     color-scheme: dark;
   }
   body {
     color: white;
     background: black;
+  }
+}
+@media (prefers-color-scheme: light) {
+  html {
+    color-scheme: light;
+  }
+  body {
+    color: black;
+    background: white;
   }
 }

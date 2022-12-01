@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { KeyboardEvent, useEffect, useRef, useState } from 'react'
+import styles from "../styles/client.module.css"
 import io from 'socket.io-client'
 
 import type { ChangeEvent } from 'react'
@@ -13,6 +14,7 @@ export default function Client() {
   const aliasRef = useRef<HTMLInputElement | null>(null)
   const [input, setInput] = useState('')
   const [messageObject, setMessageObject] = useState<string[]>([])
+  const chatRef = useRef<HTMLDivElement | null>(null)
 
   const [pieces, setPieces] = useState<number[]>([0])
   const [piecePos, setPiecePos] = useState<number>(3)
@@ -92,8 +94,13 @@ export default function Client() {
     setInput(e.target.value)
   }
 
+  const sendOnEnter = (e: KeyboardEvent) => {
+    if (e.key === "Enter") handleClick()
+  }
+
   const handleClick = () => {
-    if (alias.length == 0  && aliasRef.current?.value) {
+    if (alias.length == 0) {
+      if (!aliasRef.current?.value) return
       setAlias(aliasRef.current.value)
       aliasRef.current.style.display = "none"
       return
@@ -105,8 +112,15 @@ export default function Client() {
     setInput("")
   }
 
+  const toggleChat = () => {
+    if (chatRef.current == null) return
+    let currentLeft = chatRef.current.style.left 
+    chatRef.current.style.left = currentLeft === "100%" ? "73%" : "100%"
+  }
+
   const chooseLocal = () => {
     setLocale("LOCAL")
+    setTurn("RED")
   }
   const chooseOnline = () => {
     setLocale("ONLINE")
@@ -168,34 +182,47 @@ export default function Client() {
       pieceRef={pieceRef}
       socket={socket}
     /> 
-    <button onClick={leaveGame}>{
-      turn === "WAITING" ? "Leave Game" : 
-      gameOver === false ? "Forfeit" :
-      room !== null ? "Leave Chat" :
-      "Leave Game" }
+    <button 
+      className={styles.leaveButton}
+      onClick={leaveGame}>{
+        turn === "WAITING" ? "Leave Game" : 
+        gameOver === false && locale === "ONLINE" ? "Forfeit" :
+        room !== null ? "Leave Chat" :
+        "Leave Game" }
     </button>
     {/* Components specific to ONLINE play */}
-    {locale === "ONLINE" ?
-    <>
-    <button onClick={handleClick}>Submit</button>
+    {locale === "ONLINE" ? <>
+    <div ref={chatRef} className={styles.chatContainer}>
     {alias ? <input
       placeholder="Type something"
       value={input}
       onChange={onChangeHandler}
+      onKeyDown={sendOnEnter}
       />
       : null }
     <input
       placeholder="Your name"
       ref={aliasRef}
       />
+    <button onClick={handleClick}>{
+      alias.length === 0 ?
+      "Set Name" : "Send"}
+    </button>
+    <div className={styles.msgContainer}>
     {messageObject.map(v => <div key={key++}>{v}</div>)}
-    </>
-    : null}
+    </div>
+    </div>
+    <div className={styles.chatToggle} onClick={toggleChat}/>
+    </> : null}
     </>: 
-    <>
-    <button onClick={chooseLocal}>Local</button>
-    <button onClick={chooseOnline}>Online</button>
-    </>}
+    <div className={styles.titleContainer}>
+    <h1>Kinect Fore!</h1>
+    <div className={styles.localeButtons}>
+      <button onClick={chooseLocal}>Play Local</button>
+      <button onClick={chooseOnline}>Play Online</button>
+    </div>
+    </div>}
+
     </>
   )
 }

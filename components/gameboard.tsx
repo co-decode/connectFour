@@ -48,10 +48,11 @@ const board =  Array.from({length: 42}, _ => 0)
     - DONE I should indicate what side a player has been allocated
     - DONE I should inidicate when a player is waiting for another player to join
     - DONE Leave Game button should say Forfeit, Leave Chat, Leave Game.
-    - Alias Entry button should say Choose name or something, then chat entry can say submit
-    - Local game mode should not display turn and side information.
-    - turn and side information for online play should not display if turn is WAITING or if side is UNSET
-    - Game size... change for screen size? And other basic formatting. Font is colliding and being obscured by gameboard
+    - DONE Alias Entry button should say Choose name or something, then chat entry can say submit
+    - DONE Local game mode should not display turn and side information.
+    - DONE turn and side information for online play should not display if turn is WAITING or if side is UNSET
+- Game size... change for screen size? And other basic formatting. Font is colliding and being obscured by gameboard
+- Get your tests to play a game and check it's all working.
 
 */
 export default function GameBoard({
@@ -82,7 +83,10 @@ export default function GameBoard({
         // If the mouse exits the board, the piece stays at where the mouse last hovers.
         let offset = piecePos - 3
         if (pieceRef.current.style.display !== "block") pieceRef.current.style.display = "block"
-        pieceRef.current.style.left = `calc(50% + ${offset * 100}px)`
+        if (window.innerWidth < 950)
+            pieceRef.current.style.left = `calc(50% + ${offset * 100}px)`
+        else
+            pieceRef.current.style.left = `calc(40% + ${offset * 100}px)`
 
     },[piecePos,pieces,pieceRef])
 
@@ -197,12 +201,15 @@ export default function GameBoard({
             setGameOver(true)}
     }
     return (
-        <div style={{width:'100%', height:'80vh', position:'relative'}}>
-            <h3>You are {side}</h3>
-            {turn === "WAITING" ?
+        <div className={styles.container}>
+            {turn === "WAITING" && locale === "ONLINE" ?
             <h3>Waiting for an opponent...</h3> :
             <h3>It is {turn}&apos;s turn</h3> }
-            {gameOver ? <h1>THE GAME IS WON! {turn} WINS!</h1> : null}
+            {locale === "ONLINE" && side !== "UNSET" ?
+            <h3>You are {side}</h3> : null }
+            {gameOver ? 
+                <h1 className={styles.winMsg}>THE GAME IS WON! {turn} WINS!</h1> 
+                : null}
         {pieces.map((v,i) =>
             <div 
                 key={i}
