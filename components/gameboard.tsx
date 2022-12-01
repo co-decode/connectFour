@@ -30,8 +30,8 @@ const board =  Array.from({length: 42}, _ => 0)
 /* 
 - DONE Fix piece spawn in bug
 - DONE Determine when the game is won.
-- ? ->> Fix Spawn in issues with multiple bad highlights
-- DONE : Painting is still occuring immediately on other player's screen, it also obscures the winning players screen... maybe share guard state?
+- DONE Fix Spawn in issues with multiple bad highlights
+- DONE Painting is still occuring immediately on other player's screen, it also obscures the winning players screen... maybe share guard state?
 - Then work on socket integration.
     - DONE Game moves are shared
     - DONE I need to share the gameover message.
@@ -44,8 +44,14 @@ const board =  Array.from({length: 42}, _ => 0)
     - DONE Release room when a game is over and players have left
     - DONE Allow players to leave before game is over??? ie to surrender.
     - DONE Ensure that a room is dropped if a player joins and leaves before another player enters.
-    - Players need to be able to go back to the locale choice when a game ends
-    - Game size... change for screen size? And other basic formatting.
+    - DONE Players need to be able to go back to the locale choice when a game ends
+    - DONE I should indicate what side a player has been allocated
+    - DONE I should inidicate when a player is waiting for another player to join
+    - DONE Leave Game button should say Forfeit, Leave Chat, Leave Game.
+    - Alias Entry button should say Choose name or something, then chat entry can say submit
+    - Local game mode should not display turn and side information.
+    - turn and side information for online play should not display if turn is WAITING or if side is UNSET
+    - Game size... change for screen size? And other basic formatting. Font is colliding and being obscured by gameboard
 
 */
 export default function GameBoard({
@@ -191,7 +197,11 @@ export default function GameBoard({
             setGameOver(true)}
     }
     return (
-        <div style={{width:'100%', height:'100vh', position:'relative'}}>
+        <div style={{width:'100%', height:'80vh', position:'relative'}}>
+            <h3>You are {side}</h3>
+            {turn === "WAITING" ?
+            <h3>Waiting for an opponent...</h3> :
+            <h3>It is {turn}&apos;s turn</h3> }
             {gameOver ? <h1>THE GAME IS WON! {turn} WINS!</h1> : null}
         {pieces.map((v,i) =>
             <div 

@@ -42,17 +42,23 @@ export default function Client() {
     })
     socket.on('receiveSide', (side, roomID) => {
       console.log('welcome',side,roomID)
-      if (side === "BLUE") socket?.emit('startGame', roomID)
+      if (side === "BLUE") {
+        socket?.emit('startGame', roomID)
+        setTurn("RED")
+      }
       setSide(side)
       setRoom(roomID)
     })
     socket.on('startGame', () => {
       setTurn("RED")
     })
-    socket.on('endGame', () => {
-      socket?.emit('leaveGame')
+    socket.on('endGame', (caller, roomID) => {
+      socket?.emit('leaveGame', null, roomID)
       setRoom(null)
-      setGameOver(true)
+      if (caller != null) {
+        setTurn(caller === "RED" ? "BLUE" : "RED")
+        setGameOver(true)
+      }
     })
 
     socket.on('update-input', (msg:{name:string, text:string}) => { 
@@ -107,8 +113,37 @@ export default function Client() {
     socket?.emit('requestSide')
   }
   const leaveGame = () => {
-    socket?.emit('leaveGame', room)
-    setGameOver(true)
+    if (locale === "ONLINE" && turn !== "WAITING" && room !== null){
+      let caller = gameOver ? null : side
+      socket?.emit('leaveGame', caller, room)
+      setRoom(null)
+      if (!gameOver){
+        setTurn(side === "RED" ? "BLUE" : "RED")
+        setGameOver(true)
+    }
+    } else if (locale === "ONLINE" && (turn === "WAITING" || room === null)) {
+      socket?.emit('leaveGame', null, room)
+      resetState()
+    } else if (locale === "LOCAL") {
+      resetState()
+    }
+  }
+  const resetState = () => {
+    // setAlias("")
+    setInput('')
+    setMessageObject([])
+    setPieces([0])
+    setPiecePos(3)
+    setMoves(
+      Array.from({length:6}, (_,i) => 
+        Array.from({length: 7}, () => 0))
+    )
+    setGameOver(false)
+    setGuard(false)
+    setTurn("WAITING")
+    setSide("UNSET")
+    setLocale(null)
+    setRoom(null)
   }
   return (
     <>
@@ -133,10 +168,15 @@ export default function Client() {
       pieceRef={pieceRef}
       socket={socket}
     /> 
+    <button onClick={leaveGame}>{
+      turn === "WAITING" ? "Leave Game" : 
+      gameOver === false ? "Forfeit" :
+      room !== null ? "Leave Chat" :
+      "Leave Game" }
+    </button>
     {/* Components specific to ONLINE play */}
     {locale === "ONLINE" ?
     <>
-    <button onClick={leaveGame}>Leave Game</button>
     <button onClick={handleClick}>Submit</button>
     {alias ? <input
       placeholder="Type something"

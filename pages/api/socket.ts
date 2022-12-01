@@ -62,8 +62,8 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
       socket.on('startGame', (roomID) => {
         socket.to(roomID).emit('startGame')
       })
-      socket.on('leaveGame', (roomID) => {
-        socket.to(roomID).emit('endGame')
+      socket.on('leaveGame', (caller, roomID) => {
+        socket.to(roomID).emit('endGame', caller, roomID)
         socket.leave(roomID)
         if (roomList[roomID] != undefined) delete roomList[roomID]
       })
