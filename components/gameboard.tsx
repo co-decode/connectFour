@@ -212,6 +212,7 @@ export default function GameBoard({
                 : null}
         {pieces.map((v,i) =>
             <div 
+                id={`piece${i}`}
                 key={i}
                 className={i % 2 === 0 ? styles.piece : styles.bluePiece} 
                 ref={i === pieces.length - 1 ? pieceRef : undefined} 
@@ -221,6 +222,7 @@ export default function GameBoard({
         {
        board.map((v,i) => 
             <div 
+                id={`hole${i}`}
                 ref={el => {if (el == null) return; holeRef.current.push(el)}}
                 key={`r${Math.floor(i / 7)}c${i % 7}}`} 
                 className={styles.hole} 
