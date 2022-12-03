@@ -10,19 +10,21 @@ jobs:
           # install dependencies, start the app,
           # and run E2E tests using Cypress GitHub action
           # https://github.com/cypress-io/github-action
-          - name: Run tests 🧪
-            uses: cypress-io/github-action@v4
-            with:
-              start: npm run dev
-              wait-on: 'http://localhost:3000'
+#           - name: Run tests 🧪
+#             uses: cypress-io/github-action@v4
+#             with:
+#               start: npm run dev
+#               wait-on: 'http://localhost:3000'
 
           # run two Cypress instances at the same time
           # so they truly chat with each other
           - name: Run 2 Cypresses 🧪
             uses: cypress-io/github-action@v4
             with:
+              start: npm run dev
+              wait-on: 'http://localhost:3000'
               # we already have installed everything
-              install: false
+#               install: false
               # the application is running already
               # from the previous "start" command
               command: npm run pair
