@@ -11,7 +11,7 @@ jobs:
       # and run E2E tests using Cypress GitHub action
       # https://github.com/cypress-io/github-action
       - name: Run tests 🧪
-        uses: cypress-io/github-action@v2
+        uses: cypress-io/github-action@v4
         with:
           start: npm run e2e:headless
           wait: 'http://localhost:3000'
