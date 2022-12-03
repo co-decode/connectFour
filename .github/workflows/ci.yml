@@ -3,14 +3,26 @@ on: push
 jobs:
   test:
     runs-on: ubuntu-20.04
-    steps:
-      - name: Check out code 🛎
-        uses: actions/checkout@v3
+    steps:          
+          - name: Check out code 🛎
+            uses: actions/checkout@v3
 
-      # install dependencies, start the app,
-      # and run E2E tests using Cypress GitHub action
-      # https://github.com/cypress-io/github-action
-      - name: Run tests 🧪
-        uses: cypress-io/github-action@v4
-        with:
-          start: npm run e2e:headless
+          # install dependencies, start the app,
+          # and run E2E tests using Cypress GitHub action
+          # https://github.com/cypress-io/github-action
+          - name: Run tests 🧪
+            uses: cypress-io/github-action@v4
+            with:
+              start: npm run dev
+              wait-on: 'http://localhost:3000'
+
+          # run two Cypress instances at the same time
+          # so they truly chat with each other
+          - name: Run 2 Cypresses 🧪
+            uses: cypress-io/github-action@v4
+            with:
+              # we already have installed everything
+              install: false
+              # the application is running already
+              # from the previous "start" command
+              command: npm run pair
