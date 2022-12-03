@@ -5,7 +5,7 @@ import Client from '../components/client'
 
 export default function Home() {
   return (
-    <div role="heading" aria-label="homeContainer" className={styles.container}>
+    <div className={styles.container}>
       <Client />
     </div>
   )
