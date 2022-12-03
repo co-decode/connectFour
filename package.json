@@ -10,7 +10,14 @@
     "cypress": "cypress open --config-file=cypress.config.ts",
     "cypress:headless": "cypress run --config-file=cypress.config.ts",
     "e2e": "start-server-and-test dev http://localhost:3000 cypress",
-    "e2e:headless": "start-server-and-test dev http://localhost:3000 cypress:headless"
+    "e2e:headless": "start-server-and-test dev http://localhost:3000 cypress:headless",
+
+    "cy:second:dev": "start-server-and-test dev http://localhost:3000 cy:second",
+    "pair:dev": "concurrently npm:cy:second:dev npm:cy:first",
+
+    "cy:first": "cypress run --config-file cypress.first.config.ts",
+    "cy:second": "cypress run --config-file cypress.second.config.ts",
+    "pair": "concurrently npm:cy:first npm:cy:second"
   },
   "dependencies": {
     "next": "13.0.3",
@@ -23,6 +30,7 @@
     "@types/node": "^18.11.10",
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",
+    "concurrently": "^7.6.0",
     "cypress": "^11.2.0",
     "eslint": "^8.28.0",
     "eslint-config-next": "^13.0.5",
