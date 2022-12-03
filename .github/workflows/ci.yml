@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Check out code 🛎
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # install dependencies, start the app,
       # and run E2E tests using Cypress GitHub action
@@ -14,4 +14,3 @@ jobs:
         uses: cypress-io/github-action@v4
         with:
           start: npm run e2e:headless
-          wait: 'http://localhost:3000'
