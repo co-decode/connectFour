@@ -14,4 +14,3 @@ jobs:
         uses: cypress-io/github-action@v4
         with:
           start: npm run e2e:headless
-          wait-on: 'http://localhost:3000'
