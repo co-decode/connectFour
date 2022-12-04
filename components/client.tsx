@@ -58,7 +58,8 @@ export default function Client() {
       socket?.emit('leaveGame', null, roomID)
       setRoom(null)
       if (caller != null) {
-        setTurn(caller === "RED" ? "BLUE" : "RED")
+        if (caller === "FORCED") setTurn("FORCED")
+        else setTurn(caller === "RED" ? "BLUE" : "RED")
         setGameOver(true)
       }
     })
@@ -79,10 +80,14 @@ export default function Client() {
       setGuard(true)
     })
     
-    socket.on('updateMovesTurnAndPieces', (row, col, t) => {
-      setMoves((moves) => moves.map((v,r) => r === row ? v.map((prev,c) => c === col ? (t === "RED" ? 1 : 2) : prev) : v))
-      setPieces((prev) => [...prev, 0])
-      setTurn(t === "RED" ? "BLUE" : "RED")
+    socket.on('updateMovesTurnAndPieces', (row, col, t, tie) => {
+      if (!tie) {
+        setMoves((moves) => moves.map((v,r) => 
+          r === row ? v.map((prev,c) => 
+            c === col ? (t === "RED" ? 1 : 2) : prev) : v))
+        setPieces((prev) => [...prev, 0])
+        setTurn(t === "RED" ? "BLUE" : "RED")
+      }
       setGuard(false)
     })
     socket.on('gameOver', () => {
@@ -115,7 +120,7 @@ export default function Client() {
   const toggleChat = () => {
     if (chatRef.current == null) return
     let currentLeft = chatRef.current.style.left 
-    chatRef.current.style.left = currentLeft === "100%" ? "73%" : "100%"
+    chatRef.current.style.left = currentLeft === "73%" ? "100%" : "73%"
   }
 
   const chooseLocal = () => {
@@ -192,7 +197,7 @@ export default function Client() {
     </button>
     {/* Components specific to ONLINE play */}
     {locale === "ONLINE" ? <>
-    <div ref={chatRef} className={styles.chatContainer}>
+    <div id="chat" ref={chatRef} className={styles.chatContainer}>
     {alias ? <input
       placeholder="Type something"
       value={input}
@@ -212,7 +217,7 @@ export default function Client() {
     {messageObject.map(v => <div key={key++}>{v}</div>)}
     </div>
     </div>
-    <div className={styles.chatToggle} onClick={toggleChat}/>
+    <div id="chatToggle" className={styles.chatToggle} onClick={toggleChat}/>
     </> : null}
     </>: 
     <div className={styles.titleContainer}>

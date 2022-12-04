@@ -49,6 +49,13 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
     res.socket.server.io = io
 
     io.on('connection', (socket) => {
+      socket.on('disconnecting', ()=> {
+        socket.rooms.forEach(val => {
+          if (!val.includes("room",0)) return
+          if (roomList[val] != undefined) delete roomList[val]
+          socket.to(val).emit('endGame', "FORCED", val)
+        })
+      })
       socket.on('requestSide', () => {
         if (roomList[`room${roomCounter}`] == undefined) {
           roomList[`room${roomCounter}`] = 1
@@ -77,8 +84,8 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
       socket.on('placeMove', (row, roomID) => {
         socket.to(roomID).emit('placeMove', row)
       })
-      socket.on('changeMovesTurnAndPieces', (row, col, turn, roomID) => {
-        socket.to(roomID).emit('updateMovesTurnAndPieces', row, col, turn)
+      socket.on('changeMovesTurnAndPieces', (row, col, turn, tie, roomID) => {
+        socket.to(roomID).emit('updateMovesTurnAndPieces', row, col, turn, tie)
       })
       socket.on('gameOver', (roomID) => {
         socket.to(roomID).emit('gameOver')

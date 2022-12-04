@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    
     "cypress": "cypress open --config-file=cypress.config.ts",
     "cypress:headless": "cypress run --config-file=cypress.config.ts",
     "e2e": "start-server-and-test dev http://localhost:3000 cypress",

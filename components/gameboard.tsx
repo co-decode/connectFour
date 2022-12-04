@@ -91,6 +91,12 @@ export default function GameBoard({
     },[piecePos,pieces,pieceRef])
 
     useEffect(() => {
+        console.log(pieces.length)
+        if (pieces.length === 42 && pieceRef.current === null) setGameOver(true)
+
+    },[pieces,pieceRef,setGameOver])
+
+    useEffect(() => {
         // Disable pointer on game board when the game is over
         if (gameOver) {
             holeRef.current.forEach(hole => hole.style.cursor = "default")
@@ -187,11 +193,15 @@ export default function GameBoard({
         setGuard(true)
         function afterDelay() {
             // Add the move to the list of occupied circles
-            socket?.emit('changeMovesTurnAndPieces', row, col, turn, room)
+            let tie = pieces.length === 42
+
+            socket?.emit('changeMovesTurnAndPieces', row, col, turn, tie, room)
             setMoves(moves.map((v,r) => r === row ? v.map((prev,c) => c === col ? (turn === RED ? 1 : 2) : prev) : v))
             // Generate a new piece after a delay, and switch turns
-            setPieces([...pieces, 0])
-            setTurn(turn === RED ? BLUE : RED)
+            if (pieces.length < 42){
+                setPieces([...pieces, 0])
+                setTurn(turn === RED ? BLUE : RED)
+            }
             setGuard(false)
         }
         // Check if the game has been won
@@ -204,12 +214,16 @@ export default function GameBoard({
         <div className={styles.container}>
             {turn === "WAITING" && locale === "ONLINE" ?
             <h3>Waiting for an opponent...</h3> :
+            turn === "FORCED" ? null :
             <h3>It is {turn}&apos;s turn</h3> }
             {locale === "ONLINE" && side !== "UNSET" ?
             <h3>You are {side}</h3> : null }
-            {gameOver ? 
-                <h1 className={styles.winMsg}>THE GAME IS WON! {turn} WINS!</h1> 
-                : null}
+            {gameOver && pieces.length !== 42 ? 
+                (turn === "FORCED" ? 
+                <h1 className={styles.winMsg}>YOUR OPPONENT DISCONNECTED</h1> : 
+                <h1 className={styles.winMsg}>THE GAME IS WON! {turn} WINS!</h1> )
+                : pieces.length === 42 && pieceRef.current === null ? 
+                <h1>THE GAME IS OVER!</h1> : null}
         {pieces.map((v,i) =>
             <div 
                 id={`piece${i}`}
