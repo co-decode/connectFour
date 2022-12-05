@@ -25,36 +25,6 @@ interface Props {
 const [RED, BLUE] = ['RED', 'BLUE']
 const board =  Array.from({length: 42}, _ => 0)
 
-
-/* What needs to happen next? */
-/* 
-- DONE Fix piece spawn in bug
-- DONE Determine when the game is won.
-- DONE Fix Spawn in issues with multiple bad highlights
-- DONE Painting is still occuring immediately on other player's screen, it also obscures the winning players screen... maybe share guard state?
-- Then work on socket integration.
-    - DONE Game moves are shared
-    - DONE I need to share the gameover message.
-    - DONE I need to build a lobby which pairs only two players together. Perhaps I can admit spectators. Look up socket rooms.
-    - DONE I must stop RED from moving when no BLUE player has joined, else game states become unsynced.
-    - DONE Clean up chat position
-    - DONE There should be a local game mode and a remote game mode, remote only permits the player to move on the assigned turn
-    - DONE Local: No chat for local.
-    - DONE Online: Make players commit to alias before joining game chat
-    - DONE Release room when a game is over and players have left
-    - DONE Allow players to leave before game is over??? ie to surrender.
-    - DONE Ensure that a room is dropped if a player joins and leaves before another player enters.
-    - DONE Players need to be able to go back to the locale choice when a game ends
-    - DONE I should indicate what side a player has been allocated
-    - DONE I should inidicate when a player is waiting for another player to join
-    - DONE Leave Game button should say Forfeit, Leave Chat, Leave Game.
-    - DONE Alias Entry button should say Choose name or something, then chat entry can say submit
-    - DONE Local game mode should not display turn and side information.
-    - DONE turn and side information for online play should not display if turn is WAITING or if side is UNSET
-- Game size... change for screen size? And other basic formatting. Font is colliding and being obscured by gameboard
-- Get your tests to play a game and check it's all working.
-
-*/
 export default function GameBoard({
     pieces, 
     setPieces, 
@@ -91,9 +61,7 @@ export default function GameBoard({
     },[piecePos,pieces,pieceRef])
 
     useEffect(() => {
-        console.log(pieces.length)
         if (pieces.length === 42 && pieceRef.current === null) setGameOver(true)
-
     },[pieces,pieceRef,setGameOver])
 
     useEffect(() => {
@@ -248,14 +216,43 @@ export default function GameBoard({
         </div>
     )
 }
+/* What needs to happen next? */
+/* 
+- DONE Fix piece spawn in bug
+- DONE Determine when the game is won.
+- DONE Fix Spawn in issues with multiple bad highlights
+- DONE Painting is still occuring immediately on other player's screen, it also obscures the winning players screen... maybe share guard state?
+- Then work on socket integration.
+    - DONE Game moves are shared
+    - DONE I need to share the gameover message.
+    - DONE I need to build a lobby which pairs only two players together. Perhaps I can admit spectators. Look up socket rooms.
+    - DONE I must stop RED from moving when no BLUE player has joined, else game states become unsynced.
+    - DONE Clean up chat position
+    - DONE There should be a local game mode and a remote game mode, remote only permits the player to move on the assigned turn
+    - DONE Local: No chat for local.
+    - DONE Online: Make players commit to alias before joining game chat
+    - DONE Release room when a game is over and players have left
+    - DONE Allow players to leave before game is over??? ie to surrender.
+    - DONE Ensure that a room is dropped if a player joins and leaves before another player enters.
+    - DONE Players need to be able to go back to the locale choice when a game ends
+    - DONE I should indicate what side a player has been allocated
+    - DONE I should inidicate when a player is waiting for another player to join
+    - DONE Leave Game button should say Forfeit, Leave Chat, Leave Game.
+    - DONE Alias Entry button should say Choose name or something, then chat entry can say submit
+    - DONE Local game mode should not display turn and side information.
+    - DONE turn and side information for online play should not display if turn is WAITING or if side is UNSET
+- DONE Game size... change for screen size? And other basic formatting. Font is colliding and being obscured by gameboard
+- DONE Get your tests to play a game and check it's all working.
+*/
 
 /* 
     I have two choices in making the game board:
-    1. I can use a pseudo element and box shadows
+    > 1. I can use a pseudo element and box shadows <
     2. I can use an svg element with a mask
 
 */
 /* 
+svg:
     <svg viewBox="0 0 100 50" width="100%">
     <defs>
         <mask id="mask" x="0" y="0" width="80" height="30">
@@ -266,19 +263,6 @@ export default function GameBoard({
     <rect x="0" y="0" width="100" height="50" mask="url(#mask)" fill-opacity="0.7"/>    
     </svg> 
 */
-
-/* 
-    Test Requests...
-    I should test all the explained steps for each function.
-*/
-
-
-/* 
- Transition property for dropping the pieces is a flat 0.3s
- It's not too important, but it would be nice to scale their fall times based on how far they are falling...
-*/
-
-
 
 // FIXED
 /* BUG:

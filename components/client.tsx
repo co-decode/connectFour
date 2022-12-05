@@ -43,7 +43,6 @@ export default function Client() {
       console.log('connected')
     })
     socket.on('receiveSide', (side, roomID) => {
-      console.log('welcome',side,roomID)
       if (side === "BLUE") {
         socket?.emit('startGame', roomID)
         setTurn("RED")
@@ -148,7 +147,7 @@ export default function Client() {
     }
   }
   const resetState = () => {
-    // setAlias("")
+    setAlias("")
     setInput('')
     setMessageObject([])
     setPieces([0])
@@ -220,6 +219,7 @@ export default function Client() {
     <div id="chatToggle" className={styles.chatToggle} onClick={toggleChat}/>
     </> : null}
     </>: 
+    /* Components specific to the title page */
     <div className={styles.titleContainer}>
     <h1>Kinect Fore!</h1>
     <div className={styles.localeButtons}>
@@ -232,6 +232,6 @@ export default function Client() {
   )
 }
 /* 
-    Messages need to be printed to everybody's screen.
-    Pairing that message with the sender's alias would be nice.
+    DONE Messages need to be printed to everybody's screen.
+    DONE Pairing that message with the sender's alias would be nice.
 */
