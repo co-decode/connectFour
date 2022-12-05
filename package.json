@@ -17,7 +17,7 @@
     "pair:dev": "concurrently npm:cy:second:dev npm:cy:first",
 
     "cy:first": "cypress run --config-file cypress.first.config.ts",
-    "cy:second": "cypress rkun --config-file cypress.second.config.ts",
+    "cy:second": "cypress run --config-file cypress.second.config.ts",
     "pair": "concurrently npm:cy:first npm:cy:second"
   },
   "dependencies": {
